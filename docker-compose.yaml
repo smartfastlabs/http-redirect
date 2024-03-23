@@ -1,0 +1,12 @@
+version: "3.13"
+services:
+  backend:
+    hostname: backend
+    build: .
+    image: "http-proxy/backend:local"
+    command: bash
+    tty: true
+    ports:
+      - "80:80"
+    volumes:
+      - .:/app
