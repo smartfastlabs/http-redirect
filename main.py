@@ -8,18 +8,25 @@ from starlette.responses import StreamingResponse
 
 app: FastAPI = FastAPI()
 
+try:
+    BASE_URL: str = os.environ["BASE_PROXY_URL"]
+except KeyError:
+    raise ValueError("BASE_PROXY_URL is not set")
 
-client = httpx.AsyncClient(base_url=os.environ.get("BASE_PROXY_URL"))
+client: httpx.AsyncClient = httpx.AsyncClient(base_url=BASE_URL)
 
 
 @app.get("{path:path}")
 async def proxy(path: str, request: Request):
-    url = httpx.URL(path=path, query=request.url.query.encode("utf-8"))
-    rp_req = client.build_request(
+    url: httpx.URL = httpx.URL(
+        path=path,
+        query=request.url.query.encode("utf-8"),
+    )
+    rp_req: httpx.Request = client.build_request(
         request.method,
         url,
     )
-    rp_resp = await client.send(rp_req, stream=True)
+    rp_resp: httpx.Response = await client.send(rp_req, stream=True)
     return StreamingResponse(
         rp_resp.aiter_raw(),
         status_code=rp_resp.status_code,
